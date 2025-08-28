@@ -83,6 +83,55 @@ app.delete('/usuarios/:id', (req, res) => {
 
 });
 // criar uma rota para atualizar um usuario
-//
+
+//precisa do id do usuario a ser atualizado
+app.patch('/usuarios/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+
+    //transformar o id de string pra numero
+    //se o id for invalido, retornar 400
+    if(isNaN(id)) {
+        return res.status(400).json({ menagem: "ID inválido, prescisa ser um numero"});
+    }
+
+    //procurar o usuario dentro do array =>find
+    //se nao encontrar, 404
+    const usuario = usuarios.find((usuario) => usuario.id === id);
+    if(!usuario) {
+        return res.status(404).json({mensagem: "usuario não encontrado"});
+    }
+
+    //precisa dos dados para atualizar (nome ou email)
+    //pegar os dados do body (igual o create)
+    //ss nao tiver nenhum dos dados que precisamos, retornar 400
+    const  { nome, email } = req.body;
+
+    if(!nome && !email) {
+        return res.status(400).json({mensagem: "manda pelo menos um dos dados"});        
+    }
+
+
+    //caso tenha email, verificar se ja nao existe outro suario com esse email -> some
+    //caso exista, retorna r409 - conflito
+    if(email){
+        //preciso ver se esse email já existe paraa algum usuario no sistema
+        let email_existe = usuarios.findIndex((usuario) => usuario.email === email);
+
+        if(email_existe !== -1) {
+            return res.status(409).json({mensagem: "Email já cadastrado"});
+        }
+        usuario.email = email;
+    }
+    if (nome) {
+        usuario.nome = nome;
+    }
+
+    res.status(200).json(usuario)
+});
+
+// dando tudo certo
+//nome do usuario recebe o novo nome (se tiver)
+//email do usuario recebe novo email(se tiver)
+//retorna (200) deu tudo certo
 
 app.listen(3000);
